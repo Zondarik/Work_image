@@ -38,7 +38,11 @@ public:
 
 protected:
 	CFile* PickFile; //файл картинке
+	CFile* PickFile2; //файл картинке
+
+	HBITMAP PPic; //дискриптор картинки
 	HBITMAP LodePicture(CFile* pFile, int cx, int cy, CBrush *pBrush, CDC* pCDC);
+	void DrawBitmap(CDC* pCDC,HBITMAP hbitmap, int xStart, int yStart, int szX, int szY);
 // Созданные функции схемы сообщений
 protected:
 	afx_msg void OnFilePrintPreview();

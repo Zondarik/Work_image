@@ -37,9 +37,13 @@ END_MESSAGE_MAP()
 
 CTest3View::CTest3View() noexcept
 {
-	// TODO: добавьте код создания
 	PickFile = new CFile();
+	PPic = NULL;
+	PickFile->Open(L"bb2.jpeg", CFile::modeRead | CFile::shareDenyWrite);
+	PPic = LodePicture(PickFile, 800, 800, NULL, NULL);
+	PickFile->Close();
 }
+
 
 
 
@@ -64,7 +68,11 @@ void CTest3View::OnDraw(CDC* pDC)
 	if (!pDoc)
 		return;
 
-	PickFile->Open(L"image1.bmp", CFile::modeRead | CFile::shareDenyWrite);
+	CRect tt;
+	GetClientRect(&tt);
+	DrawBitmap(pDC, PPic, 0, 0, 0, 0);
+	//DrawBitmap(pDC, PPic, 0, 0, tt.Width(), tt.Height());
+
 }
 
 HBITMAP CTest3View::LodePicture(CFile* pFile, int cx, int cy, CBrush* pBrush, CDC* pCDC)
@@ -122,7 +130,8 @@ HBITMAP CTest3View::LodePicture(CFile* pFile, int cx, int cy, CBrush* pBrush, CD
 								(pBrush != NULL) ?
 								(HBRUSH)pBrush->GetSafeHandle() :
 								::GetSysColorBrush(COLOR_WINDOW));
-							HRESULT hre = lpPicture->Render(hDCMem, 0, 0, szDest.cx, szDest.cy, 0, szDest.cy - 1, szDest.cx, -szDest.cy, NULL);
+							HRESULT hre = lpPicture->Render(hDCMem, 0, 0, szDest.cx, szDest.cy, 0,
+								szScr.cy - 1, szScr.cx, -szScr.cy, NULL);
 							::SelectObject(hDCMem, hbmold);
 
 							if (FAILED(hre)) {
@@ -144,6 +153,31 @@ HBITMAP CTest3View::LodePicture(CFile* pFile, int cx, int cy, CBrush* pBrush, CD
 	}
 
 	return hbm;
+}
+
+void CTest3View::DrawBitmap(CDC* pCDC, HBITMAP hbitmap, int xStart, int yStart,int szX, int szY)
+{
+	BITMAP bm;
+	HDC hdcMem;
+	POINT ptSize, ptOtg;
+	hdcMem = CreateCompatibleDC(pCDC->GetSafeHdc());
+	SelectObject(hdcMem, hbitmap);
+	SetMapMode(hdcMem, GetMapMode(pCDC->GetSafeHdc()));
+	GetObject(hbitmap,sizeof(BITMAP),(LPVOID)&bm);
+	ptSize.x = bm.bmWidth;
+	ptSize.y = bm.bmHeight;
+	
+	if (szX != 0)
+		ptSize.x = szX;
+	if (szY != 0)
+		ptSize.y = szY;
+
+	DPtoLP(pCDC->GetSafeHdc(), &ptSize, 1);
+	ptOtg.x = 0;
+	ptOtg.y = 0;
+	DPtoLP(hdcMem, &ptOtg, 1);
+	BitBlt(pCDC->GetSafeHdc(),xStart,yStart,ptSize.x, ptSize.y,hdcMem, ptOtg.x,ptOtg.y, SRCCOPY);
+	DeleteDC(hdcMem);
 }
 
 void CTest3View::OnRButtonUp(UINT /* nFlags */, CPoint point)
